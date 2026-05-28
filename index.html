@@ -146,7 +146,9 @@ onAuthStateChanged(auth,async function(user){
       if(snap.exists()){
         const imp=JSON.parse(snap.data().data);
         if(imp&&imp.workouts){
-          const hasLocal=window.S&&window.S.workouts&&window.S.workouts.length>0;
+          // Čitamo lokalne podatke direktno iz localStorage da izbegnemo timing problem
+          let hasLocal=false;
+          try{const loc=localStorage.getItem('tpwa5');if(loc){const ls=JSON.parse(loc);hasLocal=ls&&ls.workouts&&ls.workouts.length>0;}}catch(ex){}
           if(hasLocal){
             if(!confirm('Pronađeni su podaci u cloudu.\n\nDa li želiš da ih učitaš?\n\n⚠️ Lokalni podaci će biti prepisani.')){return;}
           }
