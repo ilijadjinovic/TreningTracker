@@ -103,9 +103,10 @@ window.fbUser=null;
 
 window.fbLogin=async function(){
   try{
+    window.fbJustLoggedIn=true;
     const result=await signInWithPopup(auth,provider);
     window.fbUser=result.user;
-  }catch(e){alert('Greška pri prijavi: '+e.message);}
+  }catch(e){window.fbJustLoggedIn=false;alert('Greška pri prijavi: '+e.message);}
 };
 
 window.fbLogout=async function(){
@@ -138,19 +139,25 @@ window.fbLoad=async function(){
   }catch(e){alert('Greška pri učitavanju: '+e.message);}
 };
 
+// fbJustLoggedIn = true samo kada korisnik klikne na dugme za prijavu
+window.fbJustLoggedIn=false;
+
 onAuthStateChanged(auth,async function(user){
   window.fbUser=user||null;
-  if(user){
+  if(user && window.fbJustLoggedIn){
+    window.fbJustLoggedIn=false;
     try{
       const snap=await getDoc(doc(db,'users',user.uid));
       if(snap.exists()){
         const imp=JSON.parse(snap.data().data);
         if(imp&&imp.workouts){
-          // Čitamo lokalne podatke direktno iz localStorage da izbegnemo timing problem
           let hasLocal=false;
           try{const loc=localStorage.getItem('tpwa5');if(loc){const ls=JSON.parse(loc);hasLocal=ls&&ls.workouts&&ls.workouts.length>0;}}catch(ex){}
           if(hasLocal){
-            if(!confirm('Pronađeni su podaci u cloudu.\n\nDa li želiš da ih učitaš?\n\n⚠️ Lokalni podaci će biti prepisani.')){return;}
+            if(!confirm('Pronađeni su podaci u cloudu.\n\nDa li želiš da ih učitaš?\n\n⚠️ Lokalni podaci će biti prepisani.')){
+              if(typeof window.rProf==='function')window.rProf();
+              return;
+            }
           }
           window.S=imp;
           if(!window.S.nutrition)window.S.nutrition={};
