@@ -87,6 +87,61 @@ textarea{resize:none}
 .empty{text-align:center;padding:28px 16px;color:var(--tx3);font-size:14px;line-height:1.8}
 .callink{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:8px;color:var(--accL);font-size:13px;font-weight:500;text-decoration:none;margin-top:10px}
 </style>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getFirestore,doc,setDoc,getDoc}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig={apiKey:"AIzaSyCAVA6i2JRdsF0xkYJFcXc9bTtJ70Awv3M",authDomain:"fitnes-tracker-1fd87.firebaseapp.com",projectId:"fitnes-tracker-1fd87",storageBucket:"fitnes-tracker-1fd87.firebasestorage.app",messagingSenderId:"911937091739",appId:"1:911937091739:web:b08f090afc68081accee3e",measurementId:"G-09546DL5G7"};
+
+const fbApp=initializeApp(firebaseConfig);
+const auth=getAuth(fbApp);
+const db=getFirestore(fbApp);
+const provider=new GoogleAuthProvider();
+
+window.fbUser=null;
+
+window.fbLogin=async function(){
+  try{
+    const result=await signInWithPopup(auth,provider);
+    window.fbUser=result.user;
+  }catch(e){alert('Greška pri prijavi: '+e.message);}
+};
+
+window.fbLogout=async function(){
+  await signOut(auth);
+  window.fbUser=null;
+  window.rProf();
+  window.toast('Odjavljen!');
+};
+
+window.fbSave=async function(){
+  if(!window.fbUser){alert('Nisi prijavljen!');return;}
+  try{
+    await setDoc(doc(db,'users',window.fbUser.uid),{data:JSON.stringify(window.S),updatedAt:new Date().toISOString()});
+    window.toast('✓ Snimljeno u cloud!');
+  }catch(e){alert('Greška pri snimanju: '+e.message);}
+};
+
+window.fbLoad=async function(){
+  if(!window.fbUser){alert('Nisi prijavljen!');return;}
+  try{
+    const snap=await getDoc(doc(db,'users',window.fbUser.uid));
+    if(!snap.exists()){alert('Nema podataka u cloudu.');return;}
+    const imp=JSON.parse(snap.data().data);
+    if(!confirm('Učitati podatke iz clouda?\n\nOvo će zameniti lokalne podatke.')){return;}
+    window.S=imp;
+    if(!window.S.nutrition)window.S.nutrition={};
+    if(!window.S.profile)window.S.profile={name:'',age:'',height:'',weight:''};
+    window.save();window.go(window.curTab);window.toast('✓ Podaci učitani iz clouda!');
+  }catch(e){alert('Greška pri učitavanju: '+e.message);}
+};
+
+onAuthStateChanged(auth,function(user){
+  window.fbUser=user||null;
+  if(typeof window.rProf==='function')window.rProf();
+});
+</script>
 </head>
 <body>
 <div id="app">
@@ -770,9 +825,23 @@ function rProf(){
     h+='<div class="empty">Unesi godine, visinu i težinu<br>da vidiš BMI i procenu kalorija.</div>';
   }
   h+='<div class="card" style="margin-top:14px"><div class="clbl">Backup podataka</div>';
-  h+='<button class="btn btg" style="margin-top:0" onclick="expData()">⬇️ Snimi podatke</button>';
-  h+='<label class="btn btb" style="margin-top:8px;cursor:pointer">⬆️ Učitaj podatke<input type="file" accept=".json" onchange="impData(event)" style="display:none"/></label>';
-  h+='<div style="font-size:11px;color:var(--tx3);line-height:1.6;margin-top:8px">Snimi sve podatke kao JSON fajl. Učitaj na drugom uređaju ili browseru.</div></div>';
+  h+='<button class="btn btg" style="margin-top:0" onclick="expData()">⬇️ Snimi podatke (lokalno)</button>';
+  h+='<label class="btn btb" style="margin-top:8px;cursor:pointer">⬆️ Učitaj podatke (lokalno)<input type="file" accept=".json" onchange="impData(event)" style="display:none"/></label>';
+  h+='<div style="font-size:11px;color:var(--tx3);line-height:1.6;margin-top:8px;margin-bottom:14px">Snimi sve podatke kao JSON fajl. Učitaj na drugom uređaju ili browseru.</div>';
+  h+='<div style="height:1px;background:var(--br);margin-bottom:14px"></div>';
+  if(window.fbUser){
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:8px">';
+    h+='<img src="'+(window.fbUser.photoURL||'')+'" style="width:32px;height:32px;border-radius:50%;flex-shrink:0" onerror="this.style.display=\'none\'">';
+    h+='<div><div style="font-size:13px;font-weight:600;color:var(--grn)">Prijavljen</div>';
+    h+='<div style="font-size:12px;color:var(--tx2)">'+(window.fbUser.displayName||window.fbUser.email)+'</div></div></div>';
+    h+='<button class="btn" style="margin-top:0;background:rgba(59,130,246,.15);color:var(--accL);border:1px solid rgba(59,130,246,.3)" onclick="fbSave()">☁️ Snimi u cloud</button>';
+    h+='<button class="btn" style="margin-top:8px;background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.3)" onclick="fbLoad()">☁️ Učitaj iz clouda</button>';
+    h+='<button class="btn bts" style="margin-top:8px" onclick="fbLogout()">Odjavi se</button>';
+  }else{
+    h+='<button class="btn" style="margin-top:0;background:#fff;color:#3c4043;border:1px solid #dadce0;font-weight:600" onclick="fbLogin()"><svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.1 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 6.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.5 0 10.5-1.9 14.3-5l-6.6-5.4C29.8 37 27 38 24 38c-5.7 0-10.6-3.1-11.7-8.4l-7 5.4C9.5 42 16.3 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-1 3.1-3.4 5.7-6.5 7.1l6.6 5.4C41.5 37.5 45 31.3 45 24c0-1.3-.2-2.7-.5-4z"/></svg> Prijavi se Google nalogom</button>';
+    h+='<div style="font-size:11px;color:var(--tx3);line-height:1.6;margin-top:8px">Prijavi se da bi sinhronizovao podatke između uređaja.</div>';
+  }
+  h+='</div>';
   
   h+='<div class="card" style="margin-top:14px"><div class="clbl">O aplikaciji</div>';
   h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">';
