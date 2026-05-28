@@ -138,8 +138,28 @@ window.fbLoad=async function(){
   }catch(e){alert('Greška pri učitavanju: '+e.message);}
 };
 
-onAuthStateChanged(auth,function(user){
+onAuthStateChanged(auth,async function(user){
   window.fbUser=user||null;
+  if(user){
+    try{
+      const snap=await getDoc(doc(db,'users',user.uid));
+      if(snap.exists()){
+        const imp=JSON.parse(snap.data().data);
+        if(imp&&imp.workouts){
+          const hasLocal=window.S&&window.S.workouts&&window.S.workouts.length>0;
+          if(hasLocal){
+            if(!confirm('Pronađeni su podaci u cloudu.\n\nDa li želiš da ih učitaš?\n\n⚠️ Lokalni podaci će biti prepisani.')){return;}
+          }
+          window.S=imp;
+          if(!window.S.nutrition)window.S.nutrition={};
+          if(!window.S.profile)window.S.profile={name:'',age:'',height:'',weight:''};
+          if(typeof window.save==='function')window.save();
+          if(typeof window.go==='function')window.go(window.curTab||'home');
+          if(typeof window.toast==='function')window.toast('☁️ Podaci učitani iz clouda!');
+        }
+      }
+    }catch(e){}
+  }
   if(typeof window.rProf==='function')window.rProf();
 });
 </script>
