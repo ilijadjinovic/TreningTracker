@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <base href="./">
 <link rel="manifest" href="./manifest.json"/>
-<title>Fitnes Tracker</title>
+<title>Fitness Tracker</title>
 <style>
 :root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--card:#1e293b;--acc:#3b82f6;--accL:#93c5fd;--grn:#22c55e;--amb:#f59e0b;--red:#ef4444;--pur:#a855f7;--tx:#f1f5f9;--tx2:#94a3b8;--tx3:#64748b;--br:#334155;--br2:#475569;--sb:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -373,7 +373,7 @@ function rHome(){
   var nm=S.profile.name?S.profile.name:'';
   var h='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
   h+='<img src="'+LOGO+'" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0"/>';
-  h+='<div><div style="font-size:22px;font-weight:700">Fitnes Tracker</div>';
+  h+='<div><div style="font-size:22px;font-weight:700">Fitness Tracker</div>';
   if(nm)h+='<div style="font-size:13px;color:var(--tx2)">Zdravo, '+nm+'</div>';
   h+='</div></div>';
   h+='<div class="mg"><div class="met"><div class="mv" style="color:var(--accL)">'+tot+'</div><div class="ml">Ukupno treninga</div></div>';
@@ -879,6 +879,7 @@ function rProf(){
   h+='<div><div style="font-weight:600;font-size:14px;color:var(--tx)">Ilija Đinović, d.i.e.</div>';
   h+='<div style="font-size:12px;color:var(--tx2)">Osmislio i implementirao</div></div></div>';
   h+='<div style="border-top:1px solid var(--br);padding-top:12px;display:flex;flex-direction:column;gap:8px">';
+  h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--tx3)"></span><span style="font-size:13px;color:var(--tx2)">Fitness Tracker v1.0</span></div>';
   h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--tx3)">🏢</span><span style="font-size:13px;color:var(--tx2)">Biro za veštačenja</span></div>';
   h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--tx3)">✉</span><span style="font-size:13px;color:var(--tx2)">info@bzv.rs</span></div>';
   h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--tx3)">🌐</span><span style="font-size:13px;color:var(--accL)">www.bzv.rs</span></div>';
